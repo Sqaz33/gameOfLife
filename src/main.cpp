@@ -57,11 +57,9 @@ public:
         game_field->setSizePolicy(sizePolicy);
         ui->verticalLayout_3->addWidget(game_field);
         
-
         QPixmap field = GameOfLifePainter::paintGameOFLifeFieldOnQPixMap(game, 10);
         game_field->setPixmap(field);
         
-
         connect(
             ui->mode_selection_comboBox,
             static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
@@ -103,7 +101,6 @@ public:
             this,
             &MyWidget::start
         );
-
         
         connect(
             ui->stop_button,
@@ -111,8 +108,6 @@ public:
             this,
             &MyWidget::stop
         );
-
-
 
         timer = new QTimer(this);
         connect(

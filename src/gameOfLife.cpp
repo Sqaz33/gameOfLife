@@ -8,11 +8,8 @@
 #include <QPainter>
 #include <QBrush>
 
-// #include <iostream> 
-
 using game_of_life::GameOfLife;
 using game_of_life::GameOfLifePainter;
-
 
 size_t GameOfLife::height() const {
     return gameField.size();
@@ -91,7 +88,6 @@ namespace {
 
     }
 }
-
 
 struct FieldKey {
     size_t w, h, s;

@@ -11,8 +11,10 @@
 #include <QPixmap>
 
 namespace game_of_life {
-    using Row = std::vector<int>;
-    using Field = std::vector<Row>;
+
+using Row = std::vector<int>;
+using Field = std::vector<Row>;
+
 class GameOfLife {
 public:
     GameOfLife(size_t width, size_t height) :
@@ -41,7 +43,6 @@ public:
         return *this;
     }
 
-
     inline size_t height() const;
     inline size_t width() const;
 
@@ -63,14 +64,11 @@ private:
     inline int countNeighbors(size_t x, size_t y) const;
 };
 
-
 class GameOfLifePainter {
 public:
     static QPixmap paintGameOFLifeFieldOnQPixMap(const GameOfLife& game, size_t squareSideLen);
 };
 
-
 }
-
 
 #endif
