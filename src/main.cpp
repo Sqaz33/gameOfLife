@@ -57,7 +57,7 @@ public:
         game_field->setSizePolicy(sizePolicy);
         ui->verticalLayout_3->addWidget(game_field);
         
-        QPixmap field = GameOfLifePainter::paintGameOFLifeFieldOnQPixMap(game, 10);
+        QPixmap field = GameOfLifePainter::paintGameOfLifeFieldOnQPixMap(game, 10);
         game_field->setPixmap(field);
         
         connect(
@@ -169,12 +169,12 @@ private:
     size_t timerTime = 500; 
 
     void moveToNextStage() {
-        game.renderNextStage();
+        game.renderNextGameFieldState();
         updateFieldOnLabel();
     }
 
     void updateFieldOnLabel() {
-        QPixmap field = GameOfLifePainter::paintGameOFLifeFieldOnQPixMap(game, 10);
+        QPixmap field = GameOfLifePainter::paintGameOfLifeFieldOnQPixMap(game, 10);
         game_field->setPixmap(field);
     }
 };

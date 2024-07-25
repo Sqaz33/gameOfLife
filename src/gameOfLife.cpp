@@ -35,23 +35,27 @@ void GameOfLife::clearField() {
     gameField = Field(height(), Row(width(), 0));
 }
 
-void GameOfLife::renderNextStage() {
-    int countN;
+void GameOfLife::renderNextGameFieldState() {
     Field newGameFild(height(), Row(width(), 0));
-
     for (size_t y = 0; y < gameField.size(); ++y) {
         for (size_t x = 0; x < gameField[0].size(); ++x) {
-            countN = countNeighbors(x, y);
-            newGameFild[y][x] = computeLiveStatus(countN, gameField[y][x]);
+            newGameFild[y][x] = computeLiveStatus(countNeighbors(x, y), gameField[y][x]);
         }
     }
     gameField = std::move(newGameFild);
 }
 
+bool GameOfLife::computeLiveStatus(size_t neighborsCount, bool liveStatus) {
+    return (!liveStatus && neighborsCount == 3) || // Revive
+            ((neighborsCount == 2 || neighborsCount == 3) && liveStatus); // Live continue 
+}           // Kill/ Deth continue
+
+
+
 int GameOfLife::countNeighbors(size_t x, size_t y) const {
     static const std::array<std::pair<int, int>, 8> neighbors {{
-        {-1, -1}, {0, -1}, {1, -1},
-        {-1,  0},          {1,  0},
+        {-1,  -1}, {0, -1}, {1, -1},
+        {-1,   0},          {1,  0},
         {-1,   1}, {0,  1}, {1,  1}  
     }};
 
@@ -106,7 +110,7 @@ namespace std {
     };
 }
 
-QPixmap GameOfLifePainter::paintGameOFLifeFieldOnQPixMap(const GameOfLife& game, size_t squareSideLen) {
+QPixmap GameOfLifePainter::paintGameOfLifeFieldOnQPixMap(const GameOfLife& game, size_t squareSideLen) {
     static std::unordered_map<FieldKey, QPixmap> markedQPixmapFields; 
     FieldKey size = {game.height(), game.width(), squareSideLen};
     if (markedQPixmapFields.find(size) == markedQPixmapFields.end()) {
