@@ -83,14 +83,13 @@ void GameOfLife::renderNextGameFieldState() {
     bool liveStatus; 
     for (auto it = livingCells.begin(); it != livingCells.end(); ) {
         Cell cell = *it;
-        // просчитать liveStatus для живой занеснной в livingCell клетки
+        // просчитать liveStatus для живой занесенной в livingCell клетки
         liveStatus = computeLiveStatus(countNeighbors(cell.first, cell.second), true);
-        if (!liveStatus) {
-            newGameFild[cell.second][cell.first] = false;
-            it = livingCells.erase(it);
-        } else {
+        if (liveStatus) {
             newGameFild[cell.second][cell.first] = true;
-            it++;  
+            it++;
+        } else {
+            it = livingCells.erase(it);
         }
 
         // просчитать liveStatus  для соседей livingCell клетки
@@ -102,11 +101,13 @@ void GameOfLife::renderNextGameFieldState() {
                 n_y >= 0 &&
                 n_x >= 0) 
             {   
-                liveStatus = computeLiveStatus(countNeighbors(n_x, n_y), gameField[n_y][n_x]) && 
-                    !gameField[n_y][n_x]; // и еще если клетка не занесенна в livingCell (мертва)
-                if (liveStatus && !newGameFild[n_y][n_x]) { // если клетка будет жива и еще не была обработанна
-                    newGameFild[n_y][n_x] = true;
-                    livingCells.push_front(Cell(n_x, n_y));
+                // если клетка не занесенная в livingCells и не обработанна в следующей ветке
+                if (!gameField[n_y][n_x] && !newGameFild[n_y][n_x]) {
+                    liveStatus = computeLiveStatus(countNeighbors(n_x, n_y), false);
+                    if (liveStatus) { // если клетка будет жива и еще не была обработанна
+                        newGameFild[n_y][n_x] = true;
+                        livingCells.push_front(Cell(n_x, n_y));
+                    }
                 }
             }
         }
