@@ -1,8 +1,11 @@
 #include "include/gameOfLife.h"
 
 #include <array>
+#include <algorithm>
 #include <stdexcept>
+#include <list>
 #include <utility>
+#include <iostream>
 
 #include <QPixMap>
 #include <QPainter>
@@ -10,6 +13,30 @@
 
 using game_of_life::GameOfLife;
 using game_of_life::GameOfLifePainter;
+using game_of_life::Cell;
+using game_of_life::CellList;
+
+namespace {
+    void drawFieldSquares(QPixmap& field, size_t sideLen, Qt::GlobalColor color) {
+        QPainter painter(&field);
+        painter.setPen(color);
+        for (size_t x = 0; x < field.width(); x+=sideLen) {
+            painter.drawLine(x, 0, x, field.width() - 1);
+        }
+        for (size_t y = 0; y < field.height(); y+=sideLen) {
+            painter.drawLine(0, y, field.width() - 1, y);
+        }
+        painter.drawLine(0, field.height() - 1, field.width() - 1, field.height() - 1);
+        painter.drawLine(field.width() - 1, 0, field.width() - 1, field.height() - 1);
+    }
+
+
+    CellList::iterator getIterOnCellFromLivingCells(CellList& cells, size_t x, size_t y) {
+        return std::find(
+            cells.begin(), cells.end(), Cell(x, y)
+        );
+    }
+}
 
 size_t GameOfLife::height() const {
     return gameField.size();
@@ -24,22 +51,64 @@ bool GameOfLife::isAlive(size_t x, size_t y) const {
 }
 
 void GameOfLife::kill(size_t x, size_t y) {
-    gameField[y][x] = false;
+    CellList::iterator it = getIterOnCellFromLivingCells(
+        livingCells, x, y
+    );
+    if (it != livingCells.end()) {
+        livingCells.erase(it);
+        gameField[y][x] = false;
+    }
 }
 
 void GameOfLife::revive(size_t x, size_t y) {
-    gameField[y][x] = true;
+    CellList::iterator it = getIterOnCellFromLivingCells(
+        livingCells, x, y
+    );
+
+    if (it == livingCells.end()) {
+        livingCells.push_front(Cell(x, y));
+        gameField[y][x] = true;
+    }
 }
 
 void GameOfLife::clearField() {
     gameField = Field(height(), Row(width(), 0));
+    livingCells = std::list<Cell>();
 }
 
 void GameOfLife::renderNextGameFieldState() {
     Field newGameFild(height(), Row(width(), 0));
-    for (size_t y = 0; y < gameField.size(); ++y) {
-        for (size_t x = 0; x < gameField[0].size(); ++x) {
-            newGameFild[y][x] = computeLiveStatus(countNeighbors(x, y), gameField[y][x]);
+    int n_x;
+    int n_y;
+    bool liveStatus; 
+    for (auto it = livingCells.begin(); it != livingCells.end(); ) {
+        Cell cell = *it;
+        // просчитать liveStatus для живой занеснной в livingCell клетки
+        liveStatus = computeLiveStatus(countNeighbors(cell.first, cell.second), true);
+        if (!liveStatus) {
+            newGameFild[cell.second][cell.first] = false;
+            it = livingCells.erase(it);
+        } else {
+            newGameFild[cell.second][cell.first] = true;
+            it++;  
+        }
+
+        // просчитать liveStatus  для соседей livingCell клетки
+        for (const auto& n : neighbors) {
+            n_x = n.first + cell.first;
+            n_y = n.second + cell.second;
+            if (n_y < gameField.size()  &&
+                n_x < gameField[0].size() && 
+                n_y >= 0 &&
+                n_x >= 0) 
+            {   
+                liveStatus = computeLiveStatus(countNeighbors(n_x, n_y), gameField[n_y][n_x]) && 
+                    !gameField[n_y][n_x]; // и еще если клетка не занесенна в livingCell (мертва)
+                if (liveStatus && !newGameFild[n_y][n_x]) { // если клетка будет жива и еще не была обработанна
+                    newGameFild[n_y][n_x] = true;
+                    livingCells.push_front(Cell(n_x, n_y));
+                }
+            }
         }
     }
     gameField = std::move(newGameFild);
@@ -50,19 +119,18 @@ bool GameOfLife::computeLiveStatus(size_t neighborsCount, bool liveStatus) {
             ((neighborsCount == 2 || neighborsCount == 3) && liveStatus); // Live continue 
 }           // Kill/ Deth continue
 
+const std::array<const std::pair<int, int>, 8> GameOfLife::neighbors {{
+    {-1,  -1}, {0, -1}, {1, -1},
+    {-1,   0},          {1,  0},
+    {-1,   1}, {0,  1}, {1,  1}  
+}};
 
 
-int GameOfLife::countNeighbors(size_t x, size_t y) const {
-    static const std::array<std::pair<int, int>, 8> neighbors {{
-        {-1,  -1}, {0, -1}, {1, -1},
-        {-1,   0},          {1,  0},
-        {-1,   1}, {0,  1}, {1,  1}  
-    }};
-
-    int count = 0;
+size_t GameOfLife::countNeighbors(size_t x, size_t y) const {
+    size_t count = 0;
     int n_x;
     int n_y;
-    for (auto& n : neighbors) {
+    for (const auto& n : neighbors) {
         n_x = n.first + x;
         n_y = n.second + y;
 
@@ -77,21 +145,6 @@ int GameOfLife::countNeighbors(size_t x, size_t y) const {
     return count;
 }
 
-namespace {
-    void drawFieldSquares(QPixmap& field, size_t sideLen, Qt::GlobalColor color) {
-        QPainter painter(&field);
-        painter.setPen(color);
-        for (size_t x = 0; x < field.width(); x+=sideLen) {
-            painter.drawLine(x, 0, x, field.width() - 1);
-        }
-        for (size_t y = 0; y < field.height(); y+=sideLen) {
-            painter.drawLine(0, y, field.width() - 1, y);
-        }
-        painter.drawLine(0, field.height() - 1, field.width() - 1, field.height() - 1);
-        painter.drawLine(field.width() - 1, 0, field.width() - 1, field.height() - 1);
-
-    }
-}
 
 struct FieldKey {
     size_t w, h, s;

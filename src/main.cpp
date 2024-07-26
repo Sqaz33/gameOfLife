@@ -181,6 +181,9 @@ private:
 
 #include "main.moc"
 
+
+#include <list>
+#include <utility>
 int main(int argc, char *argv[]) {
     SetConsoleOutputCP(CP_UTF8); 
 
@@ -189,6 +192,5 @@ int main(int argc, char *argv[]) {
     MyWidget window;
     window.resize(400, 300);
     window.show();
-
     return app.exec();
 }

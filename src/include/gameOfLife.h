@@ -12,6 +12,7 @@
 
 #include <array>
 #include <functional>
+#include <list>
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
@@ -21,9 +22,10 @@
 
 
 namespace game_of_life {
-
-using Row = std::vector<int>; ///< Designation of a row of the game field.
-using Field = std::vector<Row>; ///< Designation of the game field.
+using Row = typename  std::vector<int>; ///< Designation of a row of the game field.
+using Field = typename std::vector<Row>; ///< Designation of the game field.
+using Cell = std::pair<size_t, size_t>;///< Designation of cell
+using CellList = std::list<Cell>; ///< Designation of list of cells
 
 /**
  * @class GameOfLife
@@ -126,7 +128,7 @@ public:
      * @return true If the cell is alive.
      * @return false If the cell is dead.
      */
-    inline bool isAlive(size_t x, size_t y) const; 
+    bool isAlive(size_t x, size_t y) const; 
 
     /**
      * @brief Kill a cell on the game field.
@@ -156,9 +158,12 @@ public:
 
 private:
     Field gameField;
-    
+    CellList livingCells;
+
+    static const std::array<const std::pair<int, int>, 8> neighbors;
+
     bool computeLiveStatus(size_t neighborsCount, bool liveStatus);
-    inline int countNeighbors(size_t x, size_t y) const;
+    inline size_t countNeighbors(size_t x, size_t y) const;
 };
 
 /**
