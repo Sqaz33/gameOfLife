@@ -47,7 +47,7 @@ size_t GameOfLife::width() const {
 }
 
 bool GameOfLife::isAlive(size_t x, size_t y) const {
-    return gameField[y][x];
+    return gameField[y][x] == 1;
 }
 
 void GameOfLife::kill(size_t x, size_t y) {
@@ -81,8 +81,9 @@ void GameOfLife::renderNextGameFieldState() {
     int n_x;
     int n_y;
     bool liveStatus; 
+    Cell cell;
     for (auto it = livingCells.begin(); it != livingCells.end(); ) {
-        Cell cell = *it;
+        cell = *it;
         // просчитать liveStatus для живой занесенной в livingCell клетки
         liveStatus = computeLiveStatus(countNeighbors(cell.first, cell.second), true);
         if (liveStatus) {
@@ -96,22 +97,32 @@ void GameOfLife::renderNextGameFieldState() {
         for (const auto& n : neighbors) {
             n_x = n.first + cell.first;
             n_y = n.second + cell.second;
-            if (n_y < gameField.size()  &&
-                n_x < gameField[0].size() && 
-                n_y >= 0 &&
-                n_x >= 0) 
-            {   
-                // если клетка не занесенная в livingCells и не обработанна в следующей ветке
-                if (!gameField[n_y][n_x] && !newGameFild[n_y][n_x]) {
-                    liveStatus = computeLiveStatus(countNeighbors(n_x, n_y), false);
-                    if (liveStatus) { // если клетка будет жива и еще не была обработанна
-                        newGameFild[n_y][n_x] = true;
-                        livingCells.push_front(Cell(n_x, n_y));
-                    }
+
+            if (n_x < 0) {
+                n_x = gameField[0].size() - 1;
+            } else if (n_x >= gameField[0].size()) {
+                n_x = 0;
+            }
+
+            if (n_y < 0) {
+                n_y = gameField.size() - 1;
+            } else if (n_y >= gameField.size()) {
+                n_y = 0;
+            }
+
+            // если клетка еще не обработана
+            if (gameField[n_y][n_x] == 0 && newGameFild[n_y][n_x] != 1) {
+                liveStatus = computeLiveStatus(countNeighbors(n_x, n_y), false);
+                if (liveStatus) { // если клетка будет жива и еще не была обработанна
+                    newGameFild[n_y][n_x] = 1;
+                    livingCells.push_front(Cell(n_x, n_y));
+                } else {
+                    newGameFild[n_y][n_x] = 2;
                 }
             }
         }
     }
+
     gameField = std::move(newGameFild);
 }
 
@@ -135,13 +146,19 @@ size_t GameOfLife::countNeighbors(size_t x, size_t y) const {
         n_x = n.first + x;
         n_y = n.second + y;
 
-        if (n_y < gameField.size()  &&
-            n_x < gameField[0].size() && 
-            n_y >= 0 &&
-            n_x >= 0) 
-        {
-            count += gameField[n_y][n_x] ? 1 : 0;
+        if (n_x < 0) {
+            n_x = gameField[0].size() - 1;
+        } else if (n_x >= gameField[0].size()) {
+            n_x = 0;
         }
+
+        if (n_y < 0) {
+            n_y = gameField.size() - 1;
+        } else if (n_y >= gameField.size()) {
+            n_y = 0;
+        }
+
+        count += gameField[n_y][n_x] == 1 ? 1 : 0;
     }
     return count;
 }
