@@ -111,7 +111,7 @@ void GameOfLife::renderNextGameFieldState() {
             }
 
             // если клетка еще не обработана
-            if (gameField[n_y][n_x] == 0 && newGameFild[n_y][n_x] != 1) {
+            if (gameField[n_y][n_x] == 0 || newGameFild[n_y][n_x] != 1) {
                 liveStatus = computeLiveStatus(countNeighbors(n_x, n_y), false);
                 if (liveStatus) { // если клетка будет жива и еще не была обработанна
                     newGameFild[n_y][n_x] = 1;
@@ -157,7 +157,7 @@ size_t GameOfLife::countNeighbors(size_t x, size_t y) const {
         } else if (n_y >= gameField.size()) {
             n_y = 0;
         }
-
+    
         count += gameField[n_y][n_x] == 1 ? 1 : 0;
     }
     return count;
