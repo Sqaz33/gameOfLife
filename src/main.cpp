@@ -1,22 +1,21 @@
+#include <chrono>
 #include <iostream>
 #include <thread>
-#include <chrono>
 
 #include <QApplication>
-#include <QWidget>
-#include <QPushButton>
-#include <QPainter>
+#include <QComboBox>
 #include <QLabel>
+#include <QMouseEvent>
+#include <QPainter>
 #include <QPixmap>
 #include <QPoint>
-#include <QComboBox>
-#include <QTimer>
+#include <QPushButton>
 #include <QSpinBox>
-#include <QMouseEvent>
+#include <QTimer>
+#include <QWidget>
 
-#include "ui_form.h"
 #include "include/gameOfLife.h"
-
+#include "ui_form.h"
 #include "windows.h"
 
 using game_of_life::GameOfLife;
@@ -182,8 +181,6 @@ private:
 #include "main.moc"
 
 
-#include <list>
-#include <utility>
 int main(int argc, char *argv[]) {
     SetConsoleOutputCP(CP_UTF8); 
 

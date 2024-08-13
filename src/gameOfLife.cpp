@@ -7,6 +7,8 @@
 #include <utility>
 #include <iostream>
 
+// #define DEBUG
+
 #include <QPixMap>
 #include <QPainter>
 #include <QBrush>
@@ -76,8 +78,24 @@ void GameOfLife::clearField() {
     livingCells = std::list<Cell>();
 }
 
+
+template <class T>
+static void printV(const std::vector<T>& v) {
+    #ifdef DEBUG
+    for (const auto& a : v) {
+        for (const auto& b : a) {
+            std::cout << b << ' ';
+        }
+        std::cout << '\n';
+    }
+    std::cout << std::string(v.size(), '-') + std::string(v.size(), '-') + '\n';
+    #endif
+}
+
+
 void GameOfLife::renderNextGameFieldState() {
     Field newGameFild(height(), Row(width(), 0));
+    printV(newGameFild);
     int n_x;
     int n_y;
     bool liveStatus; 
@@ -87,9 +105,10 @@ void GameOfLife::renderNextGameFieldState() {
         // просчитать liveStatus для живой занесенной в livingCell клетки
         liveStatus = computeLiveStatus(countNeighbors(cell.first, cell.second), true);
         if (liveStatus) {
-            newGameFild[cell.second][cell.first] = true;
-            it++;
+            newGameFild[cell.second][cell.first] = 1;
+            ++it;
         } else {
+            newGameFild[cell.second][cell.first] = 2;
             it = livingCells.erase(it);
         }
 
@@ -111,9 +130,9 @@ void GameOfLife::renderNextGameFieldState() {
             }
 
             // если клетка еще не обработана
-            if (gameField[n_y][n_x] == 0 || newGameFild[n_y][n_x] != 1) {
+            if (newGameFild[n_y][n_x] == 0) {
                 liveStatus = computeLiveStatus(countNeighbors(n_x, n_y), false);
-                if (liveStatus) { // если клетка будет жива и еще не была обработанна
+                if (liveStatus) { 
                     newGameFild[n_y][n_x] = 1;
                     livingCells.push_front(Cell(n_x, n_y));
                 } else {
@@ -122,7 +141,8 @@ void GameOfLife::renderNextGameFieldState() {
             }
         }
     }
-
+    
+    printV(newGameFild);
     gameField = std::move(newGameFild);
 }
 
