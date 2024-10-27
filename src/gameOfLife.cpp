@@ -147,9 +147,9 @@ void GameOfLife::renderNextGameFieldState() {
 }
 
 bool GameOfLife::computeLiveStatus(size_t neighborsCount, bool liveStatus) {
-    return (!liveStatus && neighborsCount == 3) || // Revive
-            ((neighborsCount == 2 || neighborsCount == 3) && liveStatus); // Live continue 
-}           // Kill/ Deth continue
+    return (neighborsCount == 2 && liveStatus) || neighborsCount == 3;
+
+}
 
 const std::array<const std::pair<int, int>, 8> GameOfLife::neighbors {{
     {-1,  -1}, {0, -1}, {1, -1},
