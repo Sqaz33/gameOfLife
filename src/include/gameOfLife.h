@@ -111,14 +111,14 @@ public:
      * 
      * @return size_t The height of the game field.
      */
-    inline size_t height() const;
+    size_t height() const;
 
     /**
      * @brief Get the width of the game field.
      * 
      * @return size_t The width of the game field.
      */
-    inline size_t width() const;
+    size_t width() const;
 
     /**
      * @brief Check if a cell on the game field is alive.
@@ -163,7 +163,7 @@ private:
     static const std::array<const std::pair<int, int>, 8> neighbors;
 
     bool computeLiveStatus(size_t neighborsCount, bool liveStatus);
-    inline size_t countNeighbors(size_t x, size_t y) const;
+    size_t countNeighbors(size_t x, size_t y) const;
 };
 
 /**

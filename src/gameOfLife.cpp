@@ -53,23 +53,17 @@ bool GameOfLife::isAlive(size_t x, size_t y) const {
 }
 
 void GameOfLife::kill(size_t x, size_t y) {
-    CellList::iterator it = getIterOnCellFromLivingCells(
-        livingCells, x, y
-    );
-    if (it != livingCells.end()) {
-        livingCells.erase(it);
-        gameField[y][x] = false;
-    }
+    std::remove(livingCells.begin(), livingCells.end(), Cell(x, y));
+    gameField[y][x] = 0;
+
 }
 
 void GameOfLife::revive(size_t x, size_t y) {
-    CellList::iterator it = getIterOnCellFromLivingCells(
-        livingCells, x, y
-    );
-
-    if (it == livingCells.end()) {
+    if (std::find(livingCells.begin(), livingCells.end(), Cell(x, y)) 
+            == livingCells.end()) 
+    {
         livingCells.push_front(Cell(x, y));
-        gameField[y][x] = true;
+        gameField[y][x] = 1;
     }
 }
 
@@ -79,23 +73,8 @@ void GameOfLife::clearField() {
 }
 
 
-template <class T>
-static void printV(const std::vector<T>& v) {
-    #ifdef DEBUG
-    for (const auto& a : v) {
-        for (const auto& b : a) {
-            std::cout << b << ' ';
-        }
-        std::cout << '\n';
-    }
-    std::cout << std::string(v.size(), '-') + std::string(v.size(), '-') + '\n';
-    #endif
-}
-
-
 void GameOfLife::renderNextGameFieldState() {
     Field newGameFild(height(), Row(width(), 0));
-    printV(newGameFild);
     int n_x;
     int n_y;
     bool liveStatus; 
@@ -140,9 +119,7 @@ void GameOfLife::renderNextGameFieldState() {
                 }
             }
         }
-    }
-    
-    printV(newGameFild);
+    }    
     gameField = std::move(newGameFild);
 }
 
