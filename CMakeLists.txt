@@ -15,6 +15,7 @@ add_executable( game_of_life
     src/main.cpp
     src/form.ui
     src/gameOfLife.cpp
+    src/view.cpp
 )
 target_link_libraries(game_of_life PRIVATE Qt5::Core Qt5::Widgets Qt5::Gui)
 

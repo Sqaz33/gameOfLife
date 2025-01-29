@@ -14,12 +14,13 @@
 #include <QTimer>
 #include <QWidget>
 
-#include "include/gameOfLife.h"
+#include "../include/gameOfLife.hpp"
+#include "../include/view.hpp"
 #include "ui_form.h"
 #include "windows.h"
 
-using game_of_life::GameOfLife;
-using game_of_life::GameOfLifePainter;
+using game_of_life::GameOfLifeModel;
+using view::GameOfLifePainter;
 
 class ClickableLabel : public QLabel {
     Q_OBJECT
@@ -139,7 +140,7 @@ private slots:
     }
 
     void clearGameField() {
-        game.clearField();
+        game.clear();
         updateFieldOnLabel();
     }
 
@@ -162,13 +163,13 @@ private slots:
 
 private:    
     Ui_Form* ui = new Ui_Form;
-    GameOfLife game = GameOfLife(100, 100);
+    GameOfLifeModel game = GameOfLifeModel(100, 100);
     QTimer* timer;
     ClickableLabel* game_field;
     size_t timerTime = 500; 
 
     void moveToNextStage() {
-        game.renderNextGameFieldState();
+        game.update();
         updateFieldOnLabel();
     }
 
