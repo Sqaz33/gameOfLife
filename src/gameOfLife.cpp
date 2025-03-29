@@ -1,6 +1,7 @@
 #include "../include/gameOfLife.hpp"
 
 #include <array>
+#include <algorithm>
 #include <cstddef>
 #include <functional>
 #include <list>
@@ -10,8 +11,6 @@
 #include <vector>
 
 // #define DEBUG
-
-#include <QPixMap>
 
 using game_of_life::Cell;
 using game_of_life::CellList;
@@ -25,123 +24,86 @@ enum class CellStatus : std::uint8_t {
 };
 
 GameOfLifeModel::GameOfLifeModel() : 
-    gameField(Field(100, Row(100, CellStatus::LIVE)))
+    gameField_(Field(100, Row(100, CellStatus::LIVE)))
 {};
 
 GameOfLifeModel::GameOfLifeModel(std::size_t width, std::size_t height) :
-    gameField(Field(height, Row(width, CellStatus::DEAD)))
+    gameField_(Field(height, Row(width, CellStatus::DEAD)))
 {
     if (width < 3 || height < 3) {
         throw std::invalid_argument("height < 3 or width < 3");
     }
 }
 
-GameOfLifeModel::GameOfLifeModel(const GameOfLifeModel& other) : 
-    gameField(other.gameField) 
-{}
-
-GameOfLifeModel::GameOfLifeModel(GameOfLifeModel&& other) noexcept :
-    gameField(std::move(other.gameField)) 
-{}
-
-GameOfLifeModel& GameOfLifeModel::operator=(const GameOfLifeModel& other) {
-    if (this != &other) {
-        gameField = other.gameField;
-    }
-    return *this;
-}
-
-GameOfLifeModel& GameOfLifeModel::operator=(GameOfLifeModel&& other) noexcept {
-    gameField = std::move(other.gameField);
-    return *this;
-}
-
 std::size_t GameOfLifeModel::height() const {
-    return gameField.size();
+    return gameField_.size();
 }
 
 std::size_t GameOfLifeModel::width() const {
-    return gameField[0].size();
+    return gameField_[0].size();
 }
 
 bool GameOfLifeModel::isAlive(std::size_t x, std::size_t y) const {
-    return gameField[y][x] == CellStatus::LIVE;
+    return gameField_[y][x] == CellStatus::LIVE;
 }
 
 void GameOfLifeModel::kill(std::size_t x, std::size_t y) {
     std::erase_if(
-        livingCells, 
-        [x, y] (auto cell) { return cell == Cell{x, y}; }
+        livingCells_, 
+        [x, y] (auto&& cell) { return cell == Cell{x, y}; }
     );
-    gameField[y][x] = CellStatus::DEAD;
-
+    gameField_[y][x] = CellStatus::DEAD;
 }
 
 void GameOfLifeModel::revive(std::size_t x, std::size_t y) {
-    if (std::find(livingCells.begin(), livingCells.end(), Cell(x, y)) 
-            == livingCells.end()) 
+    if (std::find(livingCells_.begin(), livingCells_.end(), Cell(x, y)) 
+            == livingCells_.end()) 
     {
-        livingCells.emplace_back(x, y);
-        gameField[y][x] = CellStatus::LIVE;
+        livingCells_.emplace_back(x, y);
+        gameField_[y][x] = CellStatus::LIVE;
     }
 }
 
 void GameOfLifeModel::clear() {
-    gameField = Field(height(), Row(width(), CellStatus::DEAD));
-    livingCells.clear();
+    gameField_ = Field(height(), Row(width(), CellStatus::DEAD));
+    livingCells_.clear();
 }
-
 
 void GameOfLifeModel::update() {
     Field newGameFild(height(), Row(width(), CellStatus::DEAD));
-    int n_x;
-    int n_y;
-    bool liveStatus; 
-    Cell cell;
-    for (auto it = livingCells.begin(); it != livingCells.end(); ) {
-        cell = *it;
+    for (auto it = livingCells_.begin(); it != livingCells_.end(); ) {
         // просчитать liveStatus для живой занесенной в livingCell клетки
-        liveStatus = computeLiveStatus(countNeighbors(cell.first, cell.second), true);
+        bool liveStatus = computeLiveStatus_(countNeighbors_(it->first, it->second), true);
         if (liveStatus) {
-            newGameFild[cell.second][cell.first] = CellStatus::LIVE;
+            newGameFild[it->second][it->first] = CellStatus::LIVE;
             ++it;
         } else {
-            newGameFild[cell.second][cell.first] = CellStatus::PROCESSED;
-            it = livingCells.erase(it);
+            newGameFild[it->second][it->first] = CellStatus::PROCESSED;
+            it = livingCells_.erase(it);
         }
 
         // просчитать liveStatus  для соседей livingCell клетки
         for (const auto& n : neighbors) {
-            n_x = n.first + cell.first;
-            n_y = n.second + cell.second;
-
-            if (n_x < 0) {
-                n_x = gameField[0].size() - 1;
-            } else if (n_x >= gameField[0].size()) {
-                n_x = 0;
-            }
-            if (n_y < 0) {
-                n_y = gameField.size() - 1;
-            } else if (n_y >= gameField.size()) {
-                n_y = 0;
-            }
-
+            auto [n_x, n_y] 
+                = clampToSphere_(n.first + it->first, n.second + it->second);
             // если клетка еще не обработана
             if (newGameFild[n_y][n_x] == CellStatus::DEAD) {
-                liveStatus = computeLiveStatus(countNeighbors(n_x, n_y), false);
+                auto neCount = countNeighbors_(n_x, n_y);
+                liveStatus = computeLiveStatus_(neCount, false);
                 if (liveStatus) { 
                     newGameFild[n_y][n_x] = CellStatus::LIVE;
-                    livingCells.push_front(Cell(n_x, n_y));
+                    livingCells_.emplace_back(n_x, n_y);
                 } else {
                     newGameFild[n_y][n_x] = CellStatus::PROCESSED;
                 }
             }
         }
     }    
-    gameField = std::move(newGameFild);
+    
+    gameField_.swap(newGameFild);
 }
 
-bool GameOfLifeModel::computeLiveStatus(std::size_t neighborsCount, bool liveStatus) {
+bool GameOfLifeModel::computeLiveStatus_(std::size_t neighborsCount, bool liveStatus) const {
     return (neighborsCount == 2 && liveStatus) || neighborsCount == 3;
 }
 
@@ -151,31 +113,27 @@ const std::array<const std::pair<int, int>, 8> GameOfLifeModel::neighbors {{
     {-1,   1}, {0,  1}, {1,  1}  
 }};
 
-
-std::size_t GameOfLifeModel::countNeighbors(std::size_t x, std::size_t y) const {
-    std::size_t count = 0;
-    int n_x;
-    int n_y;
-    for (const auto& n : neighbors) {
-        n_x = n.first + x;
-        n_y = n.second + y;
-
-        if (n_x < 0) {
-            n_x = gameField[0].size() - 1;
-        } else if (n_x >= gameField[0].size()) {
-            n_x = 0;
-        }
-
-        if (n_y < 0) {
-            n_y = gameField.size() - 1;
-        } else if (n_y >= gameField.size()) {
-            n_y = 0;
-        }
-    
-        count += gameField[n_y][n_x] == CellStatus::LIVE ? 1 : 0;
-    }
+std::size_t GameOfLifeModel::countNeighbors_(std::size_t x, std::size_t y) const {
+    auto isAliveWrapper = [this, x, y](auto&& ne) -> bool {
+        auto [n_x, n_y] 
+            = clampToSphere_(ne.first + x, ne.second + y);
+        return isAlive(n_x, n_y);
+    };
+    auto count = std::count_if(neighbors.begin(), neighbors.end(), isAliveWrapper);
     return count;
 }
 
+std::pair<int, int> GameOfLifeModel::clampToSphere_(int x, int y) const {
+    int n_x = x;
+    int n_y = y;
+
+    if (x < 0) n_x = width() - 1;
+    else if (x >= width()) n_x = 0;
+
+    if (y < 0) n_y = height() - 1;
+    else if (y >= height()) n_y = 0;
+
+    return {n_x, n_y};
+}
 
 } // namespace gamme_of_life

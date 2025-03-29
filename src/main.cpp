@@ -46,72 +46,72 @@ public:
     MyWidget(QWidget *parent = nullptr) : 
         QWidget(parent)
     {
-        ui->setupUi(this);
+        ui_->setupUi(this);
 
-        game_field = new ClickableLabel(this);
-        game_field->setObjectName(QString::fromUtf8("game_field"));
+        gameField_ = new ClickableLabel(this);
+        gameField_->setObjectName(QString::fromUtf8("gameField_"));
         QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         sizePolicy.setHorizontalStretch(0);
         sizePolicy.setVerticalStretch(0);
-        sizePolicy.setHeightForWidth(game_field->sizePolicy().hasHeightForWidth());
-        game_field->setSizePolicy(sizePolicy);
-        ui->verticalLayout_3->addWidget(game_field);
+        sizePolicy.setHeightForWidth(gameField_->sizePolicy().hasHeightForWidth());
+        gameField_->setSizePolicy(sizePolicy);
+        ui_->verticalLayout_3->addWidget(gameField_);
         
-        QPixmap field = GameOfLifePainter::paintGameOfLifeFieldOnQPixMap(game, 10);
-        game_field->setPixmap(field);
+        QPixmap field = GameOfLifePainter::paintGameOfLifeFieldOnQPixMap(game_, 10);
+        gameField_->setPixmap(field);
         
         connect(
-            ui->mode_selection_comboBox,
+            ui_->mode_selection_comboBox,
             static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
             this,
             &MyWidget::changeMode   
         );
 
         connect(
-            game_field, 
+            gameField_, 
             &ClickableLabel::cellClicked, 
             this, 
             &MyWidget::onCellClicked
         );
 
         connect(
-            ui->clear_field_button,
+            ui_->clear_field_button,
             &QPushButton::clicked,
             this,
             &MyWidget::clearGameField
         );
 
         connect(
-            ui->do_step_button,
+            ui_->do_step_button,
             &QPushButton::clicked,
             this,
             &MyWidget::doStep
         );
 
         connect(
-            ui->per_second_spinBox,
+            ui_->per_second_spinBox,
             static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
             this,
             &MyWidget::perSecondValueChanged
         );
 
         connect(
-            ui->start_button,
+            ui_->start_button,
             &QPushButton::clicked,
             this,
             &MyWidget::start
         );
         
         connect(
-            ui->stop_button,
+            ui_->stop_button,
             &QPushButton::clicked,
             this,
             &MyWidget::stop
         );
 
-        timer = new QTimer(this);
+        timer_ = new QTimer(this);
         connect(
-            timer, 
+            timer_, 
             &QTimer::timeout, 
             this, 
             &MyWidget::moveToNextStage
@@ -121,18 +121,18 @@ public:
 private slots:
     void changeMode(int index) {
         if (index == 0) {
-            timer->stop();
+            timer_->stop();
         }
-        ui->stackedWidget->setCurrentIndex(index);
+        ui_->stackedWidget->setCurrentIndex(index);
         
     }
 
     void start() {
-        timer->start(timerTime); 
+        timer_->start(timerTime_); 
     }
 
     void stop() {
-        timer->stop(); 
+        timer_->stop(); 
     }
 
     void doStep() {
@@ -140,42 +140,42 @@ private slots:
     }
 
     void clearGameField() {
-        game.clear();
+        game_.clear();
         updateFieldOnLabel();
     }
 
     void perSecondValueChanged(int perSecond) {
         perSecond = perSecond ? perSecond : 1;
-        timerTime = 1000 / perSecond;
-        timer->setInterval(timerTime);
+        timerTime_ = 1000 / perSecond;
+        timer_->setInterval(timerTime_);
     }
 
     void onCellClicked(int x, int y) {
         int cellX = x / 10; 
         int cellY = y / 10;
-        if (game.isAlive(cellX, cellY)) {
-            game.kill(cellX, cellY);
+        if (game_.isAlive(cellX, cellY)) {
+            game_.kill(cellX, cellY);
         } else {
-            game.revive(cellX, cellY);
+            game_.revive(cellX, cellY);
         }
         updateFieldOnLabel();
     }
 
 private:    
-    Ui_Form* ui = new Ui_Form;
-    GameOfLifeModel game = GameOfLifeModel(100, 100);
-    QTimer* timer;
-    ClickableLabel* game_field;
-    size_t timerTime = 500; 
+    Ui_Form* ui_ = new Ui_Form;
+    GameOfLifeModel game_ = GameOfLifeModel(100, 100);
+    QTimer* timer_;
+    ClickableLabel* gameField_;
+    size_t timerTime_ = 500; 
 
     void moveToNextStage() {
-        game.update();
+        game_.update();
         updateFieldOnLabel();
     }
 
     void updateFieldOnLabel() {
-        QPixmap field = GameOfLifePainter::paintGameOfLifeFieldOnQPixMap(game, 10);
-        game_field->setPixmap(field);
+        QPixmap field = GameOfLifePainter::paintGameOfLifeFieldOnQPixMap(game_, 10);
+        gameField_->setPixmap(field);
     }
 };
 

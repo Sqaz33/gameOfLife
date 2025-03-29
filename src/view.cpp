@@ -5,14 +5,11 @@
 
 struct FieldKey {
     size_t w, h, s;
-    bool operator==(const FieldKey& other) const {
-        return w == other.w && h == other.h && s == other.s;
-    }
+    auto operator<=>(const FieldKey&) const = default;
 };
 
 namespace std {
-    template<>
-    struct hash<FieldKey> {
+    template<> struct hash<FieldKey> {
         size_t operator()(const FieldKey& key) const {
             std::hash<size_t> h;
             return h(key.w) ^ h(key.h << 1) ^ h(key.s << 2);

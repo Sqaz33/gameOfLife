@@ -20,8 +20,8 @@
 
 namespace game_of_life {
 enum class CellStatus : std::uint8_t;
-using Row = typename  std::vector<CellStatus>; ///< Designation of a row of the game field.
-using Field = typename std::vector<Row>; ///< Designation of the game field.
+using Row = std::vector<CellStatus>; ///< Designation of a row of the game field.
+using Field = std::vector<Row>; ///< Designation of the game field.
 using Cell = std::pair<std::size_t, std::size_t>;///< Designation of cell
 using CellList = std::list<Cell>; ///< Designation of list of cells
 
@@ -53,38 +53,8 @@ public:
      * @throw std::invalid_argument("height < 3 or width < 3")
      */
     GameOfLifeModel(std::size_t width, std::size_t height);
-    
 
-    /**
-     * @brief Copy construct a new Game Of Life object
-     * 
-     * @param[in] other Another GameOfLifeModel object. 
-     */
-    GameOfLifeModel(const GameOfLifeModel& other);
-
-    /**
-     * @brief Move construct a new Game Of Life object.
-     * 
-     * @param[in] other Another GameOfLifeModel object.
-     */
-    GameOfLifeModel(GameOfLifeModel&& other) noexcept;
-
-    /**
-     * @brief Copy assignment operator.
-     * 
-     * @param[in] other Another GameOfLifeModel object.
-     * @return GameOfLifeModel& Reference to this object.
-     */
-    GameOfLifeModel& operator=(const GameOfLifeModel& other);
-
-    /**
-     * @brief Move assignment operator.
-     * 
-     * @param[in] other Another GameOfLifeModel object.
-     * @return GameOfLifeModel& Reference to this object.
-     */
-    GameOfLifeModel& operator=(GameOfLifeModel&& other) noexcept;
-
+public:
     /**
      * @brief Get the height of the game field.
      * 
@@ -136,13 +106,15 @@ public:
     void update();
 
 private:
-    Field gameField;
-    CellList livingCells;
+    Field gameField_;
+    CellList livingCells_;
 
     static const std::array<const std::pair<int, int>, 8> neighbors;
 
-    bool computeLiveStatus(std::size_t neighborsCount, bool isLive);
-    std::size_t countNeighbors(std::size_t x, std::size_t y) const;
+private:
+    bool computeLiveStatus_(std::size_t neighborsCount, bool isLive) const;
+    std::size_t countNeighbors_(std::size_t x, std::size_t y) const;
+    std::pair<int, int> clampToSphere_(int x, int y) const;
 };
 
 

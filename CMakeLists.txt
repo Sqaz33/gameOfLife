@@ -11,11 +11,9 @@ set(CMAKE_AUTOUIC ON)
 
 find_package(Qt5 COMPONENTS Core Widgets Gui REQUIRED)
 
-add_executable( game_of_life 
-    src/main.cpp
-    src/form.ui
-    src/gameOfLife.cpp
-    src/view.cpp
-)
+file(GLOB_RECURSE SRC "src/*.cpp" "src/*.ui")
+file(GLOB_RECURSE INCLUDE "include/*.hpp")
+
+add_executable(game_of_life ${SRC} ${INCLUDE})
 target_link_libraries(game_of_life PRIVATE Qt5::Core Qt5::Widgets Qt5::Gui)
 

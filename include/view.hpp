@@ -24,5 +24,4 @@ public:
 
 } // namespace view
 
-
 #endif // INCLUDE_VIEW_HPP
